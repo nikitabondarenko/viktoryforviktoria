@@ -100,3 +100,13 @@ footer {
     color: #fff;
     margin-top: 30px;
 }
+
+.intro-text {
+    text-decoration: underline;
+    color: #FF0000;  /* This is bright red - you can change to any color you prefer */
+}
+
+.highlight-text {
+    text-decoration: underline;
+    color: #FF0000;
+}
