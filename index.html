@@ -15,8 +15,71 @@
             'send_page_view': true,
             'debug_mode': false,
             'demographics': true,
-            'interests': true
+            'interests': true,
+            'page_location': window.location.href,
+            'page_title': document.title,
+            'screen_resolution': window.screen.width + 'x' + window.screen.height,
+            'viewport_size': window.innerWidth + 'x' + window.innerHeight,
+            'user_language': navigator.language,
+            'user_agent': navigator.userAgent,
+            'client_storage': 'localStorage' in window ? 'enabled' : 'disabled',
+            'session_start': new Date().toISOString(),
+            'custom_map': {
+                'dimension1': 'user_type',
+                'dimension2': 'engagement_level',
+                'dimension3': 'content_category'
+            }
         });
+
+        // Track user engagement level
+        let engagementStartTime = new Date().getTime();
+        let scrollDepth = 0;
+        let maxScrollDepth = 0;
+
+        window.addEventListener('scroll', function() {
+            let scrollPercent = Math.round((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100);
+            maxScrollDepth = Math.max(maxScrollDepth, scrollPercent);
+            
+            // Track scroll depth at 25%, 50%, 75%, and 100%
+            if (scrollPercent >= 25 && scrollDepth < 25) {
+                gtag('event', 'scroll_depth', {
+                    'event_category': 'engagement',
+                    'event_label': '25%',
+                    'value': 25
+                });
+                scrollDepth = 25;
+            } else if (scrollPercent >= 50 && scrollDepth < 50) {
+                gtag('event', 'scroll_depth', {
+                    'event_category': 'engagement',
+                    'event_label': '50%',
+                    'value': 50
+                });
+                scrollDepth = 50;
+            } else if (scrollPercent >= 75 && scrollDepth < 75) {
+                gtag('event', 'scroll_depth', {
+                    'event_category': 'engagement',
+                    'event_label': '75%',
+                    'value': 75
+                });
+                scrollDepth = 75;
+            } else if (scrollPercent >= 100 && scrollDepth < 100) {
+                gtag('event', 'scroll_depth', {
+                    'event_category': 'engagement',
+                    'event_label': '100%',
+                    'value': 100
+                });
+                scrollDepth = 100;
+            }
+        });
+
+        // Track user type based on behavior
+        let userType = 'new';
+        if (localStorage.getItem('returning_user')) {
+            userType = 'returning';
+        } else {
+            localStorage.setItem('returning_user', 'true');
+        }
+        gtag('set', 'user_type', userType);
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
