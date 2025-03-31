@@ -20,10 +20,10 @@
         <h1>Help Viktoria Rebuild</h1>
         <nav>
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="full_story.html">What Happened?</a></li>
-                <li><a href="support.html">Community Letters</a></li>
-                <li><a href="donate.html">Donate</a></li>
+                <li><a href="index.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'home'});">Home</a></li>
+                <li><a href="full_story.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'full_story'});">What Happened?</a></li>
+                <li><a href="support.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'support'});">Community Letters</a></li>
+                <li><a href="donate.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'donate'});">Donate</a></li>
             </ul>
         </nav>
     </header>
@@ -31,12 +31,37 @@
     <main>
         <h2>Every Dollar Helps</h2>
         <p>Your contribution will support Viktoria's legal fight and rebuilding efforts.</p>
-        <a href="https://gofund.me/27033ef8" class="btn">Donate Now</a>
-        <a href="https://www.facebook.com/profile.php?id=61574439930191" class="btn">Share on Facebook</a>
+        <a href="https://gofund.me/27033ef8" class="btn" onclick="gtag('event', 'click', {'event_category': 'conversion', 'event_label': 'donate_button'});">Donate Now</a>
+        <a href="https://www.facebook.com/profile.php?id=61574439930191" class="btn" onclick="gtag('event', 'click', {'event_category': 'social', 'event_label': 'facebook_share'});">Share on Facebook</a>
     </main>
 
     <footer>
         <p>&copy; 2025 Stand with Viktoria</p>
     </footer>
+
+    <script>
+        // Track page load time
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                gtag('event', 'timing_complete', {
+                    'name': 'load',
+                    'value': performance.now(),
+                    'event_category': 'Performance'
+                });
+            }, 0);
+        });
+
+        // Track time spent on page
+        let startTime = new Date().getTime();
+        window.addEventListener('beforeunload', function() {
+            let endTime = new Date().getTime();
+            let timeSpent = (endTime - startTime) / 1000; // Convert to seconds
+            gtag('event', 'time_spent', {
+                'event_category': 'engagement',
+                'event_label': 'donate_page',
+                'value': Math.round(timeSpent)
+            });
+        });
+    </script>
 </body>
 </html>

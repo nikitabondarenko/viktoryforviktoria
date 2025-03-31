@@ -20,10 +20,10 @@
         <h1>Victory for Viktoria: A Community Stands Against Injustice</h1>
         <nav>
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="full_story.html">What Happened?</a></li>
-                <li><a href="support.html">Community Letters</a></li>
-                <li><a href="donate.html">Donate</a></li>
+                <li><a href="index.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'home'});">Home</a></li>
+                <li><a href="full_story.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'full_story'});">What Happened?</a></li>
+                <li><a href="support.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'support'});">Community Letters</a></li>
+                <li><a href="donate.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'donate'});">Donate</a></li>
             </ul>
         </nav>
     </header>
@@ -155,5 +155,51 @@
     <footer>
         <p>&copy; 2025 Stand with Viktoria</p>
     </footer>
+
+    <script>
+        // Track page load time
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                gtag('event', 'timing_complete', {
+                    'name': 'load',
+                    'value': performance.now(),
+                    'event_category': 'Performance'
+                });
+            }, 0);
+        });
+
+        // Track time spent on page
+        let startTime = new Date().getTime();
+        window.addEventListener('beforeunload', function() {
+            let endTime = new Date().getTime();
+            let timeSpent = (endTime - startTime) / 1000; // Convert to seconds
+            gtag('event', 'time_spent', {
+                'event_category': 'engagement',
+                'event_label': 'full_story_page',
+                'value': Math.round(timeSpent)
+            });
+        });
+
+        // Track story section visibility
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const sectionName = entry.target.getAttribute('data-section');
+                    gtag('event', 'section_view', {
+                        'event_category': 'content',
+                        'event_label': sectionName,
+                        'value': 1
+                    });
+                }
+            });
+        });
+
+        // Observe all story sections
+        document.querySelectorAll('.story-section, .summary, .disclaimer, .call-to-action').forEach((section) => {
+            const sectionName = section.querySelector('h2, h3, h4')?.textContent || 'unknown';
+            section.setAttribute('data-section', sectionName);
+            observer.observe(section);
+        });
+    </script>
 </body>
 </html>

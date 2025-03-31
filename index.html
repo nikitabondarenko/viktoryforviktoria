@@ -20,10 +20,10 @@
         <h1>Stand with Viktoria</h1>
         <nav>
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="full_story.html">What Happened?</a></li>
-                <li><a href="support.html">Community Letters</a></li>
-                <li><a href="donate.html">Donate</a></li>
+                <li><a href="index.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'home'});">Home</a></li>
+                <li><a href="full_story.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'full_story'});">What Happened?</a></li>
+                <li><a href="support.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'support'});">Community Letters</a></li>
+                <li><a href="donate.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'donate'});">Donate</a></li>
             </ul>
         </nav>
     </header>
@@ -33,13 +33,38 @@
             <h2>Help Viktoria Rebuild After Injustice</h2>
             <img src="vika_teaching.jpg" alt="Viktoria teaching ballet">
             <p><strong>Viktoria Titova</strong> dedicated 17 years of her life to building two ballet companies—Emerald Ballet Theatre and Emerald Ballet Academy. After all her hard work, she was wrongfully removed by her own Board.</p>
-            <a href="donate.html" class="btn">Donate Now</a>
-            <a href="https://www.facebook.com/profile.php?id=61574439930191" class="btn">Join the Conversation</a>
+            <a href="donate.html" class="btn" onclick="gtag('event', 'click', {'event_category': 'cta', 'event_label': 'donate_now_home'});">Donate Now</a>
+            <a href="https://www.facebook.com/profile.php?id=61574439930191" class="btn" onclick="gtag('event', 'click', {'event_category': 'social', 'event_label': 'facebook_join'});">Join the Conversation</a>
         </section>
     </main>
 
     <footer>
         <p>&copy; 2025 Stand with Viktoria</p>
     </footer>
+
+    <script>
+        // Track page load time
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                gtag('event', 'timing_complete', {
+                    'name': 'load',
+                    'value': performance.now(),
+                    'event_category': 'Performance'
+                });
+            }, 0);
+        });
+
+        // Track time spent on page
+        let startTime = new Date().getTime();
+        window.addEventListener('beforeunload', function() {
+            let endTime = new Date().getTime();
+            let timeSpent = (endTime - startTime) / 1000; // Convert to seconds
+            gtag('event', 'time_spent', {
+                'event_category': 'engagement',
+                'event_label': 'home_page',
+                'value': Math.round(timeSpent)
+            });
+        });
+    </script>
 </body>
 </html>
