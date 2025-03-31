@@ -8,20 +8,69 @@
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
-        // Get location data
+        // Check if Google Analytics is blocked
+        window.addEventListener('error', function(e) {
+            if (e.target.src && e.target.src.includes('googletagmanager.com')) {
+                console.log('Google Analytics is blocked, using alternative tracking');
+            }
+        }, true);
+
+        // Get location data with fallback
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(data => {
-                gtag('set', {
-                    'country': data.country_name,
-                    'city': data.city,
-                    'region': data.region,
-                    'latitude': data.latitude,
-                    'longitude': data.longitude,
-                    'timezone': data.timezone
-                });
+                try {
+                    gtag('set', {
+                        'country': data.country_name,
+                        'city': data.city,
+                        'region': data.region,
+                        'latitude': data.latitude,
+                        'longitude': data.longitude,
+                        'timezone': data.timezone,
+                        'location_source': 'ip'
+                    });
+                } catch (error) {
+                    localStorage.setItem('visitor_location', JSON.stringify({
+                        ...data,
+                        location_source: 'ip'
+                    }));
+                }
             })
-            .catch(error => console.log('Error fetching location:', error));
+            .catch(error => {
+                console.log('Error fetching IP location:', error);
+                // Try browser geolocation as fallback
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            const locationData = {
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy,
+                                location_source: 'browser'
+                            };
+                            try {
+                                gtag('set', locationData);
+                            } catch (error) {
+                                localStorage.setItem('visitor_location', JSON.stringify(locationData));
+                            }
+                        },
+                        function(error) {
+                            console.log('Geolocation permission denied or error:', error);
+                            // Store that we tried but couldn't get location
+                            localStorage.setItem('visitor_location', JSON.stringify({
+                                location_source: 'none',
+                                error: error.message
+                            }));
+                        }
+                    );
+                } else {
+                    // Browser doesn't support geolocation
+                    localStorage.setItem('visitor_location', JSON.stringify({
+                        location_source: 'none',
+                        error: 'Geolocation not supported'
+                    }));
+                }
+            });
 
         gtag('config', 'G-JSRC6JT2PK', {
             'anonymize_ip': true,
