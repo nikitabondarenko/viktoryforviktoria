@@ -2,76 +2,34 @@
 <html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JSRC6JT2PK"></script>
     <script>
+        // Initialize dataLayer
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        // Check if Google Analytics is blocked
+        
+        // Check if GA is blocked
+        let gaBlocked = false;
         window.addEventListener('error', function(e) {
             if (e.target.src && e.target.src.includes('googletagmanager.com')) {
+                gaBlocked = true;
                 console.log('Google Analytics is blocked, using alternative tracking');
             }
         }, true);
 
-        // Get location data with fallback
-        fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => {
-                try {
-                    gtag('set', {
-                        'country': data.country_name,
-                        'city': data.city,
-                        'region': data.region,
-                        'latitude': data.latitude,
-                        'longitude': data.longitude,
-                        'timezone': data.timezone,
-                        'location_source': 'ip'
-                    });
-                } catch (error) {
-                    localStorage.setItem('visitor_location', JSON.stringify({
-                        ...data,
-                        location_source: 'ip'
-                    }));
-                }
-            })
-            .catch(error => {
-                console.log('Error fetching IP location:', error);
-                // Try browser geolocation as fallback
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        function(position) {
-                            const locationData = {
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude,
-                                accuracy: position.coords.accuracy,
-                                location_source: 'browser'
-                            };
-                            try {
-                                gtag('set', locationData);
-                            } catch (error) {
-                                localStorage.setItem('visitor_location', JSON.stringify(locationData));
-                            }
-                        },
-                        function(error) {
-                            console.log('Geolocation permission denied or error:', error);
-                            // Store that we tried but couldn't get location
-                            localStorage.setItem('visitor_location', JSON.stringify({
-                                location_source: 'none',
-                                error: error.message
-                            }));
-                        }
-                    );
-                } else {
-                    // Browser doesn't support geolocation
-                    localStorage.setItem('visitor_location', JSON.stringify({
-                        location_source: 'none',
-                        error: 'Geolocation not supported'
-                    }));
-                }
-            });
+        // Load GA script
+        const gaScript = document.createElement('script');
+        gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-JSRC6JT2PK';
+        gaScript.async = true;
+        gaScript.onerror = function() {
+            gaBlocked = true;
+            console.log('Failed to load Google Analytics');
+        };
+        document.head.appendChild(gaScript);
 
+        // Initialize GA
+        gtag('js', new Date());
+        
+        // Configure GA with enhanced settings
         gtag('config', 'G-JSRC6JT2PK', {
             'anonymize_ip': true,
             'allow_google_signals': true,
@@ -95,55 +53,77 @@
             }
         });
 
-        // Track user engagement level
-        let engagementStartTime = new Date().getTime();
-        let scrollDepth = 0;
-        let maxScrollDepth = 0;
+        // Get location data with fallback
+        function updateLocationData() {
+            fetch('https://ipapi.co/json/')
+                .then(response => response.json())
+                .then(data => {
+                    const locationData = {
+                        'country': data.country_name,
+                        'city': data.city,
+                        'region': data.region,
+                        'latitude': data.latitude,
+                        'longitude': data.longitude,
+                        'timezone': data.timezone,
+                        'location_source': 'ip'
+                    };
+                    
+                    if (!gaBlocked) {
+                        gtag('set', locationData);
+                    }
+                    
+                    // Always store in localStorage as backup
+                    localStorage.setItem('visitor_location', JSON.stringify(locationData));
+                })
+                .catch(error => {
+                    console.log('Error fetching IP location:', error);
+                    // Try browser geolocation as fallback
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            function(position) {
+                                const locationData = {
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude,
+                                    accuracy: position.coords.accuracy,
+                                    location_source: 'browser'
+                                };
+                                
+                                if (!gaBlocked) {
+                                    gtag('set', locationData);
+                                }
+                                
+                                localStorage.setItem('visitor_location', JSON.stringify(locationData));
+                            },
+                            function(error) {
+                                console.log('Geolocation permission denied or error:', error);
+                                localStorage.setItem('visitor_location', JSON.stringify({
+                                    location_source: 'none',
+                                    error: error.message
+                                }));
+                            }
+                        );
+                    } else {
+                        localStorage.setItem('visitor_location', JSON.stringify({
+                            location_source: 'none',
+                            error: 'Geolocation not supported'
+                        }));
+                    }
+                });
+        }
 
-        window.addEventListener('scroll', function() {
-            let scrollPercent = Math.round((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100);
-            maxScrollDepth = Math.max(maxScrollDepth, scrollPercent);
-            
-            // Track scroll depth at 25%, 50%, 75%, and 100%
-            if (scrollPercent >= 25 && scrollDepth < 25) {
-                gtag('event', 'scroll_depth', {
-                    'event_category': 'engagement',
-                    'event_label': '25%',
-                    'value': 25
-                });
-                scrollDepth = 25;
-            } else if (scrollPercent >= 50 && scrollDepth < 50) {
-                gtag('event', 'scroll_depth', {
-                    'event_category': 'engagement',
-                    'event_label': '50%',
-                    'value': 50
-                });
-                scrollDepth = 50;
-            } else if (scrollPercent >= 75 && scrollDepth < 75) {
-                gtag('event', 'scroll_depth', {
-                    'event_category': 'engagement',
-                    'event_label': '75%',
-                    'value': 75
-                });
-                scrollDepth = 75;
-            } else if (scrollPercent >= 100 && scrollDepth < 100) {
-                gtag('event', 'scroll_depth', {
-                    'event_category': 'engagement',
-                    'event_label': '100%',
-                    'value': 100
-                });
-                scrollDepth = 100;
-            }
-        });
+        // Update location data after GA is loaded
+        setTimeout(updateLocationData, 1000);
 
-        // Track user type based on behavior
+        // Track user type
         let userType = 'new';
         if (localStorage.getItem('returning_user')) {
             userType = 'returning';
         } else {
             localStorage.setItem('returning_user', 'true');
         }
-        gtag('set', 'user_type', userType);
+        if (!gaBlocked) {
+            gtag('set', 'user_type', userType);
+        }
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -158,6 +138,7 @@
                 <li><a href="index.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'home'});">Home</a></li>
                 <li><a href="full_story.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'full_story'});">What Happened?</a></li>
                 <li><a href="support.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'support'});">Community Letters</a></li>
+                <li><a href="video.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'video'});">Video</a></li>
                 <li><a href="donate.html" onclick="gtag('event', 'navigation', {'event_category': 'menu', 'event_label': 'donate'});">Donate</a></li>
             </ul>
         </nav>
